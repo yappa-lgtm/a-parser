@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -13,7 +15,6 @@ class ApiPrefix(BaseModel):
 
 class DatabaseConfig(BaseModel):
     url: PostgresDsn
-    url: str
     echo: bool = False
     echo_pool: bool = False
     pool_size: int = 50
@@ -29,7 +30,7 @@ class Settings(BaseSettings):
     )
     run: RunConfig = RunConfig()
     api: ApiPrefix = ApiPrefix()
-    db: DatabaseConfig
+    db: Optional[DatabaseConfig] = None
 
 
 settings = Settings()
