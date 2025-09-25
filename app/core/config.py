@@ -17,7 +17,8 @@ class RunConfig(BaseModel):
 
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
-    migration_service: str = "/migration-service"
+    migration_service: str = "/migration_service"
+    ukrainian_pension_fund: str = "/ukrainian_pension_fund"
     healthcheck: str = "/healthcheck"
 
 

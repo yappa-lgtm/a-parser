@@ -4,6 +4,7 @@ from fastapi import APIRouter, UploadFile, File, Depends
 
 from core.dependencies import get_migration_service
 from core.exceptions import ApplicationException
+from core.schemas.migration_service import MigrationServicePersonInfo
 from services.migration_service import MigrationService
 
 router = APIRouter(tags=["Migration Service"])
@@ -11,7 +12,7 @@ router = APIRouter(tags=["Migration Service"])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/")
+@router.post("/", response_model=MigrationServicePersonInfo)
 async def parse(
     personal_info_file: UploadFile = File(..., alias="personalInfoFile"),
     service: MigrationService = Depends(get_migration_service),
