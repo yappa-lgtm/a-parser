@@ -35,7 +35,7 @@ class UkrainianPensionFundService:
         patronymic = root.findtext("SECOND_NAME")
         tax_id = root.findtext("IPN")
 
-        full_name = f"{last_name} {first_name[0]}.{patronymic[0]}"
+        full_name = f"{last_name} {first_name[0]}.{patronymic[0]}."
 
         if tax_id and len(tax_id) >= 9:
             is_male = int(tax_id[8]) % 2 != 0
