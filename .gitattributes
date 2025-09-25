@@ -1,0 +1,44 @@
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.py text eol=lf
+run text eol=lf
+prestart.sh text eol=lf
+
+*.ini text eol=lf
+*.mako text eol=lf
+*.env text eol=lf
+*.cfg text eol=lf
+*.conf text eol=lf
+
+Dockerfile* text eol=lf
+docker-compose*.yml text eol=lf
+docker-compose*.yaml text eol=lf
+
+*.py text eol=lf
+*.pyi text eol=lf
+*.pyx text eol=lf
+pyproject.toml text eol=lf
+poetry.lock text eol=lf
+requirements*.txt text eol=lf
+
+*.md text eol=lf
+*.rst text eol=lf
+*.txt text eol=lf
+
+alembic.ini text eol=lf
+alembic/**/*.py text eol=lf
+alembic/**/*.mako text eol=lf
+
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.exe binary
+*.dll binary
+*.so binary
