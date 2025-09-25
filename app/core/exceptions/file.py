@@ -12,3 +12,12 @@ class FileValidationException(ApplicationException):
     @property
     def message(self):
         return f"Файл '{self.filename}' не валідний: {self.reason}"
+
+
+@dataclass
+class NoFilePresentedException(ApplicationException):
+    status_code: int = field(default=422)
+
+    @property
+    def message(self):
+        return f"Відстуні необхідні файли"

@@ -1,7 +1,23 @@
-from typing import Callable
+from typing import Callable, Optional
 import re
 
-ADDRESS_COMPONENTS_LIST = ["вул", "буд", "область", "м", "район", "кв", "c"]
+RESERVED_WORD_LIST = ["ВМД", "ТЗ"]
+
+ADDRESS_COMPONENTS_LIST = [
+    "вул",
+    "буд",
+    "область",
+    "м",
+    "район",
+    "районів",
+    "кв",
+    "з",
+    "c",
+    "р-н",
+    "с",
+    "обл",
+    "та",
+]
 
 SHORT_ADMINISTRATIVE_BUILDING_DICT = {
     "товариство з обмеженою відповідальністю": "ТОВ",
@@ -22,6 +38,31 @@ LATIN_TO_UKRAINIAN_DICT = {
     "I": "І",
     "e": "є",
     "E": "Є",
+}
+
+COLORS_DICT = {
+    "СІРИЙ": "сірого",
+    "ЧЕРВОНИЙ": "червоного",
+    "СИНІЙ": "синього",
+    "ЧОРНИЙ": "чорного",
+    "БІЛИЙ": "білого",
+    "ЗЕЛЕНИЙ": "зеленого",
+    "ЖОВТИЙ": "жовтого",
+    "КОРИЧНЕВИЙ": "коричневого",
+    "ФІОЛЕТОВИЙ": "фіолетового",
+    "РОЖЕВИЙ": "рожевого",
+    "ОРАНЖЕВИЙ": "оранжевого",
+    "БЕЖЕВИЙ": "бежевого",
+    "ЗОЛОТИЙ": "золотого",
+    "СРІБНИЙ": "срібного",
+    "ТЕМНО-СІРИЙ": "темно-сірого",
+    "СВІТЛО-СІРИЙ": "світло-сірого",
+    "ТЕМНО-СИНІЙ": "темно-синього",
+    "СВІТЛО-СИНІЙ": "світло-синього",
+    "ТЕМНО-ЗЕЛЕНИЙ": "темно-зеленого",
+    "СВІТЛО-ЗЕЛЕНИЙ": "світло-зеленого",
+    "БОРДОВИЙ": "бордового",
+    "МЕТАЛІК": "металік",
 }
 
 
@@ -48,15 +89,34 @@ class TextChain:
             if not isinstance(text, str):
                 return text
 
-            for keyword in ADDRESS_COMPONENTS_LIST:
-                pattern = rf"\b{keyword}(\.)?(\s|$)"
-                text = re.sub(
-                    pattern,
-                    lambda m: keyword.lower() + (m.group(1) or "") + m.group(2),
-                    text,
-                    flags=re.IGNORECASE,
-                )
-            return text
+            words = re.split(r"(\s|,|[.])", text)
+
+            normalized_words = []
+            for w in words:
+                if w.lower() in ADDRESS_COMPONENTS_LIST:
+                    normalized_words.append(w.lower())
+                else:
+                    normalized_words.append(w.capitalize())
+
+            return "".join(normalized_words)
+
+        return self.apply(_normalize)
+
+    def normalize_reserved_words(self):
+        def _normalize(text):
+            if not isinstance(text, str):
+                return text
+
+            words = re.split(r"(\s|,|[.])", text)
+
+            normalized_words = []
+            for w in words:
+                if w.upper() in RESERVED_WORD_LIST:
+                    normalized_words.append(w.upper())
+                else:
+                    normalized_words.append(w.lower())
+
+            return "".join(normalized_words)
 
         return self.apply(_normalize)
 
@@ -74,9 +134,16 @@ class TextChain:
             if not isinstance(text, str):
                 return text
 
-            clean = text.strip()
-            if re.match(r"^[A-ZА-ЯІЇЄ]{2}", clean, re.IGNORECASE):
-                return f"{clean[:2]}\u00a0{clean[2:]}"
+            clean = text.strip().replace(" ", "")
+
+            match = re.match(
+                r"^([A-ZА-ЯІЇЄ]{2})(\d+)([A-ZА-ЯІЇЄ]{0,2})$", clean, re.IGNORECASE
+            )
+            if match:
+                part1, digits, part2 = match.groups()
+                if part2:
+                    return f"{part1}\u00a0{digits}\u00a0{part2}"
+                return f"{part1}\u00a0{digits}"
             return clean
 
         return self.apply(_normalize)
@@ -91,6 +158,15 @@ class TextChain:
                 result = result.replace(latin, cyrillic)
 
             return result
+
+        return self.apply(_normalize)
+
+    def normalize_color(self):
+        def _normalize(text):
+            if not isinstance(text, str):
+                return text
+
+            return COLORS_DICT[text] or text.lower()
 
         return self.apply(_normalize)
 
@@ -124,6 +200,40 @@ class TextChain:
 
         return self.apply(_format)
 
+    def cut_between(self, start: Optional[str] = None, end: Optional[str] = None):
+        def cut(text):
+            if not isinstance(text, str):
+                return text
+
+            def is_in(pointer: str):
+                return pointer in text
+
+            if start and end:
+                if not is_in(start) and not is_in(end):
+                    return text
+
+                pattern = rf"{re.escape(start)}(.*?){re.escape(end)}"
+                match = re.search(pattern, text)
+                return match.group(1).strip() if match else None
+            elif start:
+                if not is_in(start):
+                    return text
+
+                pattern = rf"{re.escape(start)}(.*)"
+                match = re.search(pattern, text)
+                return match.group(1).strip() if match else None
+            elif end:
+                if not is_in(end):
+                    return text
+
+                pattern = rf"(.*?)" + re.escape(end)
+                match = re.search(pattern, text)
+                return match.group(1).strip() if match else text
+            else:
+                return text
+
+        return self.apply(cut)
+
     def normalize_quotes(self):
         def _normalize(text):
             if not isinstance(text, str):
@@ -156,6 +266,16 @@ class TextChain:
             return result
 
         return self.apply(_normalize)
+
+    def shorten_full_name(self):
+        def _shorten(text):
+            if not isinstance(text, str):
+                return text
+
+            splited = text.split(" ")
+            return f"{splited[0]} {splited[1][0]}.{splited[2][0]}."
+
+        return self.apply(_shorten)
 
     def get(self):
         return self.value

@@ -19,6 +19,7 @@ class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     migration_service: str = "/migration_service"
     ukrainian_pension_fund: str = "/ukrainian_pension_fund"
+    main_service_center_mvs_ukraine: str = "/main_service_center_mvs_ukraine"
     healthcheck: str = "/healthcheck"
 
 
